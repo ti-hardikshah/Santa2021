@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Model Viewer</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="./assets/css/responsive.css">
+
+    <script src="https://unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="https://unpkg.com/intersection-observer/intersection-observer.js"></script>
+    <script src="https://unpkg.com/resize-observer-polyfill/dist/ResizeObserver.js"></script>
+    <script src="https://unpkg.com/fullscreen-polyfill/dist/fullscreen.polyfill.js"></script>
+    <script src="https://unpkg.com/focus-visible/dist/focus-visible.js" defer></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+   
+  </head>
+
+<body>
+  
+  <script>
+    function Sync(selector, audioSelector) {
+      var modelViewer = document.querySelector(selector);
+      var sound = document.querySelector(audioSelector);
+      var playRequest = document.querySelector("#overlay");
+
+      sound.addEventListener("timeupdate", () => {
+        modelViewer.currentTime = sound.currentTime;
+        console.log("modelViewer time: " + modelViewer.currentTime);
+      });
+
+      sound.addEventListener("pause", () => {
+        modelViewer.pause();
+      });
+
+      sound.addEventListener("play", () => {
+        modelViewer.play();
+
+        playRequest.classList.add("hide");
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible") {
+          sound.pause();
+          playRequest.classList.remove("hide-overlay");
+        }
+      });
+
+      var promise = sound.play();
+      if (promise !== undefined) {
+        promise
+          .then(_ => {
+            console.log("Autoplay has worked");
+            playRequest.classList.add("hide");
+          })
+          .catch(error => {
+            // Show a "Play" button so that user can start playback.
+            console.log("Autoplay has not worked");
+
+            // show the modal dialogue to play this
+            playRequest.classList.remove("hide");
+          });
+      }
+
+      
+    }
+
+    function playNow() {
+
+      var playRequest = document.querySelector("#overlay");
+      playRequest.classList.add("hide-overlay");
+
+      var sound = document.querySelector("#sound");
+      sound.play();
+    }
+
+    function jumpTo(time) {
+      var sound = document.querySelector("#sound");
+      sound.currentTime = time;
+    }
+  </script>
+
+
+<div style="text-align: center;"> 
+  <audio autoplay loop id="sound">
+    <source src="./assets/audio/Stinger_3.mp3" type="audio/mpeg"/>
+  </audio>
+</div> 
+  <div class="grid-container">
+    <div id="overlay" class="show play-button hide-overlay">
+      <div id="request-press-play">
+        <div onclick="playNow()">
+          <img src="assets/image/videoicon@3x.png" alt="">
+        </div>
+      </div>
+    </div>
+    <model-viewer  
+     src="./assets/model/Santa_anim_v03.glb"
+     ios-src="./assets/model/Santa_static_anim_2.reality"
+     alt="assets" 
+     loading="eager" 
+     poster="./assets/image/loading4.gif"
+     background-color="#fff" 
+     camera-controls
+     camera-orbit
+     ar ar-placement="floor"
+     quick-look-browsers="safari chrome" 
+     id="model-viewer"
+     ar-status="not-presenting" 
+    >
+    
+    <input slot="ar-button" class="ar-button" value="submit" type="image" src="./assets/image/ariconsiyah.png" width="30px" height="30px"> 
+    
+  
+  </model-viewer>
+
+     <script>
+      const modelViewer = document.querySelector('model-viewer');
+      modelViewer.addEventListener('model-visibility', (evt) =>  {
+        console.log("Model Loaded sucees");
+        var playRequest = document.querySelector("#overlay");
+        playRequest.classList.remove("hide-overlay");
+      })
+    </script>
+
+    <script>
+      window.addEventListener("load", () => {
+        Sync("#model-viewer", "#sound");
+      });
+    </script>
+  </div>
+  
+
+</body></html>
